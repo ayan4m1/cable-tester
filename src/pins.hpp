@@ -32,4 +32,5 @@
 
 #define PIN_TEST_SWITCH A3
 #define PIN_LEDS A2
+#define PIN_STATUS_LED 17
 #define NUM_LEDS 4

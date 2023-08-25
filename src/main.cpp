@@ -5,7 +5,7 @@
 #include "pins.hpp"
 
 #define MAX_POWER_MW 400
-#define MAX_BRIGHTNESS 127
+#define MAX_BRIGHTNESS 50
 #define UPDATE_INTERVAL_MS 250
 
 // uncomment to enable serial debugging
@@ -24,6 +24,7 @@ Button2 testButton(PIN_TEST_SWITCH);
 
 void syncColors();
 void performTest(Button2& btn);
+void testPin(uint8_t testIndex, bool side);
 
 void setup() {
   delay(100);
@@ -34,29 +35,23 @@ void setup() {
   }
   Serial.println(F("Connected!"));
 #endif
-  testButton.setClickHandler(performTest);
+  testButton.setPressedHandler(performTest);
+  pinMode(PIN_STATUS_LED, OUTPUT);
+  digitalWrite(PIN_STATUS_LED, LOW);
   FastLED.addLeds<WS2812B, PIN_LEDS, RGB>(leds, NUM_LEDS);
   FastLED.setBrightness(MAX_BRIGHTNESS);
   FastLED.setMaxPowerInMilliWatts(MAX_POWER_MW);
+
 #ifdef SERIAL_DEBUG
   Serial.println(F("Initialized!"));
 #endif
 }
 
 void loop() {
-#ifdef SERIAL_DEBUG
-  uint32_t start = micros();
-#endif
   EVERY_N_MILLISECONDS(UPDATE_INTERVAL_MS) { syncColors(); }
 
   FastLED.show();
   testButton.loop();
-#ifdef SERIAL_DEBUG
-  uint16_t frameRate = 1 / ((micros() - start) / 1e6);
-  EVERY_N_MILLISECONDS(UPDATE_INTERVAL_MS) {
-    Serial.printf("%dfps\n", frameRate);
-  }
-#endif
 }
 
 void syncColors() {
@@ -109,39 +104,49 @@ void performTest(Button2& btn) {
   uint32_t start = micros();
 #endif
 
-  // run the test for each pin
+  // run the test for each pin in each direction
   for (uint8_t testIndex = 0; testIndex < NUM_LEDS; testIndex++) {
-    // set all pin states to expected values
-    for (uint8_t i = 0; i < NUM_LEDS; i++) {
-#ifdef SERIAL_DEBUG
-      Serial.printf("Setting pin %d to %d\n", hostPins[i],
-                    testIndex == i ? HIGH : LOW);
-#endif
-      digitalWrite(hostPins[i], testIndex == i ? HIGH : LOW);
-    }
-    // read pin states and flag any faults
-    for (uint8_t i = 0; i < NUM_LEDS; i++) {
-      uint8_t level = digitalRead(devicePins[i]);
-#ifdef SERIAL_DEBUG
-      Serial.printf("Read pin %d as %d\n", devicePins[i], level);
-#endif
-
-      if (testIndex == i && level == LOW) {
-#ifdef SERIAL_DEBUG
-        Serial.println(F("Discontinuity detected"));
-#endif
-        continuities[i] = false;
-      } else if (testIndex != i && level == HIGH) {
-#ifdef SERIAL_DEBUG
-        Serial.println(F("Short detected"));
-#endif
-        shorts[i] = true;
-      }
-    }
+    testPin(testIndex, true);
+    testPin(testIndex, false);
   }
   testComplete = true;
 #ifdef SERIAL_DEBUG
-  double durationMs = (micros() - start) / 1e3d;
+  double durationMs = (micros() - start) / 1e3;
   Serial.printf("Test took %.2fms!\n", durationMs);
 #endif
+}
+
+void testPin(uint8_t testIndex, bool side) {
+  // set all pin states to expected values
+  for (uint8_t i = 0; i < NUM_LEDS; i++) {
+    const uint8_t pin = side ? hostPins[i] : devicePins[i];
+
+#ifdef SERIAL_DEBUG
+    Serial.printf("Setting pin %d to %d\n", pin, testIndex == i ? HIGH : LOW);
+#endif
+    pinMode(pin, OUTPUT);
+    digitalWrite(pin, testIndex == i ? HIGH : LOW);
+  }
+  // read pin states and flag any faults
+  for (uint8_t i = 0; i < NUM_LEDS; i++) {
+    const uint8_t pin = side ? devicePins[i] : hostPins[i];
+
+    pinMode(pin, INPUT_PULLDOWN);
+    uint8_t level = digitalRead(pin);
+#ifdef SERIAL_DEBUG
+    Serial.printf("Read pin %d as %d\n", pin, level);
+#endif
+
+    if (testIndex == i && level == LOW) {
+#ifdef SERIAL_DEBUG
+      Serial.println(F("Discontinuity detected"));
+#endif
+      continuities[i] = false;
+    } else if (testIndex != i && level == HIGH) {
+#ifdef SERIAL_DEBUG
+      Serial.println(F("Short detected"));
+#endif
+      shorts[i] = true;
+    }
+  }
 }
