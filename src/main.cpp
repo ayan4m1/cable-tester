@@ -84,6 +84,7 @@ void performTest(Button2& btn) {
     return;
   }
 
+  // reset state variables
   testStarted = true;
   testComplete = false;
   for (uint8_t i = 0; i < NUM_LEDS; i++) {
@@ -93,7 +94,10 @@ void performTest(Button2& btn) {
 #ifdef SERIAL_DEBUG
   Serial.println(F("Starting test..."));
 #endif
+
+  // run the test for each pin
   for (uint8_t testIndex = 0; testIndex < NUM_LEDS; testIndex++) {
+    // set all pin states to expected values
     for (uint8_t i = 0; i < NUM_LEDS; i++) {
 #ifdef SERIAL_DEBUG
       Serial.printf("Setting pin %d to %d\n", hostPins[i],
@@ -101,6 +105,7 @@ void performTest(Button2& btn) {
 #endif
       digitalWrite(hostPins[i], testIndex == i ? HIGH : LOW);
     }
+    // read pin states and flag any faults
     for (uint8_t i = 0; i < NUM_LEDS; i++) {
       uint8_t level = digitalRead(devicePins[i]);
 #ifdef SERIAL_DEBUG
