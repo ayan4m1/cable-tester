@@ -64,19 +64,20 @@ void performTest(Button2& btn) {
 
   testStarted = true;
   testComplete = false;
-  uint8_t testIndex = 0;
-  for (uint8_t i = 0; i < NUM_LEDS; i++) {
-    digitalWrite(hostPins[i], testIndex == i ? HIGH : LOW);
-    continuities[i] = true;
-    shorts[i] = false;
-  }
-  for (uint8_t i = 0; i < NUM_LEDS; i++) {
-    uint8_t level = digitalRead(devicePins[i]);
+  for (uint8_t testIndex = 0; testIndex < NUM_LEDS; testIndex++) {
+    for (uint8_t i = 0; i < NUM_LEDS; i++) {
+      digitalWrite(hostPins[i], testIndex == i ? HIGH : LOW);
+      continuities[i] = true;
+      shorts[i] = false;
+    }
+    for (uint8_t i = 0; i < NUM_LEDS; i++) {
+      uint8_t level = digitalRead(devicePins[i]);
 
-    if (testIndex == i && level == LOW) {
-      continuities[i] = false;
-    } else if (testIndex != i && level == HIGH) {
-      shorts[i] = true;
+      if (testIndex == i && level == LOW) {
+        continuities[i] = false;
+      } else if (testIndex != i && level == HIGH) {
+        shorts[i] = true;
+      }
     }
   }
   testComplete = true;
