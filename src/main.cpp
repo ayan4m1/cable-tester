@@ -14,7 +14,7 @@
 uint8_t hostPins[NUM_LEDS] = {PIN_VBUS_HOST, PIN_DP_HOST, PIN_DN_HOST,
                               PIN_GND_HOST};
 uint8_t devicePins[NUM_LEDS] = {PIN_VBUS_DEVICE, PIN_DP_DEVICE, PIN_DN_DEVICE,
-                                PIN_GND_HOST};
+                                PIN_GND_DEVICE};
 bool testStarted = false;
 bool testComplete = false;
 bool continuities[NUM_LEDS] = {true, true, true, true};
