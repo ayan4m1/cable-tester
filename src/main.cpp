@@ -4,6 +4,10 @@
 
 #include "pins.hpp"
 
+#define MAX_POWER_MW 400
+#define MAX_BRIGHTNESS 127
+#define UPDATE_INTERVAL_MS 250
+
 // uncomment to enable serial debugging
 // #define SERIAL_DEBUG
 
@@ -32,15 +36,15 @@ void setup() {
 #endif
   testButton.setClickHandler(performTest);
   FastLED.addLeds<WS2812B, PIN_LEDS, RGB>(leds, NUM_LEDS);
-  FastLED.setBrightness(127);
-  FastLED.setMaxPowerInMilliWatts(400);
+  FastLED.setBrightness(MAX_BRIGHTNESS);
+  FastLED.setMaxPowerInMilliWatts(MAX_POWER_MW);
 #ifdef SERIAL_DEBUG
   Serial.println(F("Initialized!"));
 #endif
 }
 
 void loop() {
-  EVERY_N_MILLISECONDS(250) { syncColors(); }
+  EVERY_N_MILLISECONDS(UPDATE_INTERVAL_MS) { syncColors(); }
 
   FastLED.show();
   testButton.loop();
