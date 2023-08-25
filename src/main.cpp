@@ -52,8 +52,7 @@ void loop() {
   FastLED.show();
   testButton.loop();
 #ifdef SERIAL_DEBUG
-  uint32_t end = micros();
-  uint16_t frameRate = round(1 / (double)((end - start) / 1e6));
+  uint16_t frameRate = 1 / ((micros() - start) / 1e6);
   EVERY_N_MILLISECONDS(UPDATE_INTERVAL_MS) {
     Serial.printf("%dfps\n", frameRate);
   }
@@ -107,6 +106,7 @@ void performTest(Button2& btn) {
   }
 #ifdef SERIAL_DEBUG
   Serial.println(F("Starting test..."));
+  uint32_t start = micros();
 #endif
 
   // run the test for each pin
@@ -141,6 +141,7 @@ void performTest(Button2& btn) {
   }
   testComplete = true;
 #ifdef SERIAL_DEBUG
-  Serial.println(F("Test complete!"));
+  double durationMs = (micros() - start) / 1e3d;
+  Serial.printf("Test took %.2fms!\n", durationMs);
 #endif
 }
