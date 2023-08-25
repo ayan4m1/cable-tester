@@ -44,10 +44,20 @@ void setup() {
 }
 
 void loop() {
+#ifdef SERIAL_DEBUG
+  uint32_t start = micros();
+#endif
   EVERY_N_MILLISECONDS(UPDATE_INTERVAL_MS) { syncColors(); }
 
   FastLED.show();
   testButton.loop();
+#ifdef SERIAL_DEBUG
+  uint32_t end = micros();
+  uint16_t frameRate = round(1 / (double)((end - start) / 1e6));
+  EVERY_N_MILLISECONDS(UPDATE_INTERVAL_MS) {
+    Serial.printf("%dfps\n", frameRate);
+  }
+#endif
 }
 
 void syncColors() {
