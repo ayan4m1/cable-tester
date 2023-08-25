@@ -25,6 +25,5 @@ jobs:
         run: pio run
       - name: Create release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: .pio/build/pico/firmware.bin
+          files: .pio/build/pico/firmware.uf2
